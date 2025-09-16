@@ -1,32 +1,39 @@
 // La URL base de nuestra API
-const API_URL = 'http://localhost:3000/api/students';
+const API_URL_Calificaciones = 'http://localhost:3024/api/calificaciones';
+
+// la URL de jonathan
+const API_URL_Alumnos = 'http://localhost:3025/api/alumnos';
 
 // Elementos del DOM
 const form = document.getElementById('student-form');
-const studentIdInput = document.getElementById('student-id');
-const nameInput = document.getElementById('name');
-const gradeInput = document.getElementById('grade');
+const matriculaAlumno = document.getElementById('matriculaAlumno');
+const nombreAlumno = document.getElementById('nombreAlumno');
+const calificacion = document.getElementById('calificacion');
 const studentsTbody = document.getElementById('students-tbody');
 const cancelButton = document.getElementById('cancel-button');
 
+// Jonathan tiene alumnos 
 // Función para obtener y mostrar todos los estudiantes
-const fetchStudents = async () => {
+const fetchAlumnos = async () => {
     try {
-        const response = await fetch(API_URL);
-        const students = await response.json();
+        const response = await fetch(`${API_URL_Alumnos}`);
+        const dataAlumnos = await response.json();
+    
+        const responseCalificaciones = await fetch(`${API_URL}/alumno/${dataAlumnos.matriculaAlumno}`);
+        const dataCalificaciones = await responseCalificaciones.json();
+        const calificaciones = dataCalificaciones.length > 0 ? dataCalificaciones[0] : { parcial: 'N/A', calificacion: 'N/A' };
 
-        // Limpiar la tabla antes de llenarla
+        // Limpiar el tbody antes de agregar nuevos datos
         studentsTbody.innerHTML = '';
 
-        students.forEach(student => {
+        dataAlumnos.forEach(alumnos => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${student.id}</td>
-                <td>${student.name}</td>
-                <td>${student.grade}</td>
+                <td>${alumnos.matriculaAlumno}</td>
+                <td>${alumnos.nombreAlumno}</td>
+                <td>${calificaciones}</td>
                 <td>
-                    <button class="btn btn-edit" onclick="editStudent(${student.id}, '${student.name}', ${student.grade})">Editar</button>
-                    <button class="btn btn-delete" onclick="deleteStudent(${student.id})">Eliminar</button>
+                    <button class="btn btn-edit" onclick="editCalificaciones(${alumnos.matriculaAlumno}, '${alumnos.nombreAlumno}', ${calificaciones})">Editar</button>
                 </td>
             `;
             studentsTbody.appendChild(row);
@@ -40,18 +47,18 @@ const fetchStudents = async () => {
 form.addEventListener('submit', async (e) => {
     e.preventDefault(); // Evitar que la página se recargue
 
-    const id = studentIdInput.value;
-    const name = nameInput.value;
-    const grade = gradeInput.value;
+    const matriculaAlumno = matriculaAlumno.value;
+    const nombreAlumno = nombreAlumno.value;
+    const calificacion = calificacion.value;
 
-    const studentData = { name, grade };
+    const dataAlumnos = { nombreAlumno, calificacion, matriculaAlumno };
 
     let url = API_URL;
     let method = 'POST';
 
     // Si hay un ID, es una actualización (PUT)
-    if (id) {
-        url = `${API_URL}/${id}`;
+    if (matriculaAlumno) {
+        url = `${API_URL}/${matriculaAlumno}`;
         method = 'PUT';
     }
 
@@ -61,7 +68,7 @@ form.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(studentData)
+            body: JSON.stringify(dataAlumnos)
         });
 
         if (response.ok) {
@@ -76,32 +83,14 @@ form.addEventListener('submit', async (e) => {
 });
 
 // Función para cargar datos de un estudiante en el formulario para editar
-const editStudent = (id, name, grade) => {
-    studentIdInput.value = id;
-    nameInput.value = name;
-    gradeInput.value = grade;
+const editCalificaciones = (matriculaAlumno, nombreAlumno, calificacion) => {
+    matriculaAlumno.value = matriculaAlumno;
+    nombreAlumno.value = nombreAlumno;
+    calificacion.value = calificacion;
     cancelButton.style.display = 'inline-block';
     window.scrollTo(0, 0); // Desplazar al inicio de la página
 };
 
-// Función para eliminar un estudiante
-const deleteStudent = async (id) => {
-    if (confirm('¿Estás seguro de que quieres eliminar a este estudiante?')) {
-        try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                fetchStudents(); // Recargar la lista
-            } else {
-                console.error('Error al eliminar el estudiante');
-            }
-        } catch (error) {
-            console.error('Error de red:', error);
-        }
-    }
-};
 
 // Función para resetear el formulario
 const resetForm = () => {

@@ -9,9 +9,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // <-- Habilita la comunicación con el frontend
 app.use(express.json());
 
+app.use(express.static('public')); // Servir archivos estáticos desde la carpeta 'public'
+
+
 // ... (resto de tus rutas API)
 const studentRoutes = require('./src/routes/alumnos.routes');
-app.use('/api/students', studentRoutes);
+app.use('/api/calificaciones', studentRoutes);
 
 // Iniciar el servidor
 app.listen(PORT, () => {

@@ -1,23 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const studentController = require('../controllers/alumnos.controller');
+const calificacionesController = require('../controllers/alumnos.controller');
 
-// Rutas para el CRUD de Alumnos
+// GET /api/calificaciones -> Obtener todas las calificaciones
+router.get('/', calificacionesController.getAllCalif);
 
-// GET /api/students -> Obtener todos los alumnos
-router.get('/', studentController.getAllStudents);
+// GET /api/calificaciones/:parcial -> Obtener calificaciones por parcial
+router.get('/:parcial', calificacionesController.getCalifByParcial);
 
-// GET /api/students/:id -> Obtener un alumno por su ID
-router.get('/:id', studentController.getStudentById);
+// GET /api/calificaciones/alumno/:matriculaAlumno -> Obtener calificaciones de un alumno
+router.get('/alumno/:matriculaAlumno', calificacionesController.getCalifByAlumno);
 
-// POST /api/students -> Crear un nuevo alumno
-router.post('/', studentController.createStudent);
+// PUT /api/calificaciones/:matriculaAlumno -> Actualizar calificación de un alumno
+router.put('/:matriculaAlumno', calificacionesController.updateCalifByAlumno);  
 
-// PUT /api/students/:id -> Actualizar la calificación de un alumno
-router.put('/:id', studentController.updateStudentGrade);
-
-// DELETE /api/students/:id -> Eliminar un alumno
-router.delete('/:id', studentController.deleteStudent);
-
-
-module.exports = router;
+module.exports = router; // Exportar el router y la función post

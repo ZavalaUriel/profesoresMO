@@ -1,91 +1,66 @@
-const pool = require('../db/database'); // Importamos el pool de conexiones
+const pool = require('../db/database');
 
 // OBTENER TODOS LOS ALUMNOS (READ)
-const getAllStudents = async (req, res) => {
+const getAllCalif = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM students');
+        const [rows] = await pool.query('SELECT * FROM calificaciones');
         res.status(200).json(rows);
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los alumnos', error });
+        res.status(500).json({ message: 'Error al obtener las calificaciones', error });
     }
 };
 
-// OBTENER UN ALUMNO POR ID (READ)
-const getStudentById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const [rows] = await pool.query('SELECT * FROM students WHERE id = ?', [id]);
 
-        if (rows.length <= 0) {
-            return res.status(404).json({ message: 'Alumno no encontrado' });
-        }
-        res.status(200).json(rows[0]);
+// OBTENER CALIFICACIONES POR PARCIAL
+const getCalifByParcial = async (req, res) => {
+    try {
+        const { parcial } = req.params;
+        const [rows] = await pool.query('SELECT * FROM calificaciones WHERE parcial = ?', [parcial]);
+        res.status(200).json(rows);
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener el alumno', error });
-    }
+        res.status(500).json({ message: 'Error al obtener las calificaciones por parcial', error });
+    }      
 };
 
-// CREAR UN NUEVO ALUMNO (CREATE)
-const createStudent = async (req, res) => {
+// OBTENER CALIFICACIONES DE UN ALUMNO
+const getCalifByAlumno = async (req, res) => {
     try {
-        const { name, grade } = req.body;
-        if (!name || grade === undefined) {
-            return res.status(400).json({ message: 'El nombre y la calificación son requeridos' });
-        }
-        
-        const [result] = await pool.query('INSERT INTO students (name, grade) VALUES (?, ?)', [name, grade]);
-        const newStudent = { id: result.insertId, name, grade };
-        
-        res.status(201).json(newStudent);
+        const { matriculaAlumno } = req.params;
+        const [rows] = await pool.query('SELECT * FROM calificaciones WHERE matriculaAlumno = ?', [matriculaAlumno]);
+        res.status(200).json(rows);
     } catch (error) {
-        res.status(500).json({ message: 'Error al crear el alumno', error });
-    }
+        res.status(500).json({ message: 'Error al obtener las calificaciones del alumno', error });
+    }       
 };
 
-// ACTUALIZAR CALIFICACIÓN DE UN ALUMNO (UPDATE)
-const updateStudentGrade = async (req, res) => {
+// ACTUALIZAR CALIFICACION DE UN ALUMNO (UPDATE)
+const updateCalifByAlumno = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { grade } = req.body;
-
-        if (grade === undefined) {
-            return res.status(400).json({ message: 'La calificación es requerida para actualizar' });
-        }
-
-        const [result] = await pool.query('UPDATE students SET grade = ? WHERE id = ?', [grade, id]);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Alumno no encontrado' });
-        }
-
-        const [rows] = await pool.query('SELECT * FROM students WHERE id = ?', [id]);
-        res.status(200).json(rows[0]);
+        const { matriculaAlumno } = req.params;
+        const { parcial, calificacion } = req.body;
+        const [result] = await pool.query('UPDATE calificaciones SET calificacion = ? WHERE matriculaAlumno = ? AND parcial = ?', [calificacion, matriculaAlumno, parcial]);
+        res.status(200).json({ message: 'Calificación actualizada', affectedRows: result.affectedRows });
     } catch (error) {
-        res.status(500).json({ message: 'Error al actualizar el alumno', error });
-    }
+        res.status(500).json({ message: 'Error al actualizar la calificación', error });
+    }   
 };
 
-// ELIMINAR UN ALUMNO (DELETE)
-const deleteStudent = async (req, res) => {
+// CREAR UNA NUEVA CALIFICACION (CREATE)
+const createCalif = async (req, res) => {
     try {
-        const { id } = req.params;
-        const [result] = await pool.query('DELETE FROM students WHERE id = ?', [id]);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Alumno no encontrado' });
-        }
-        
-        res.status(200).json({ message: 'Alumno eliminado exitosamente' });
+        const { matriculaAlumno, parcial, calificacion } = req.body;
+        const [result] = await pool.query('INSERT INTO calificaciones (matriculaAlumno, parcial, calificacion) VALUES (?, ?, ?)', [matriculaAlumno, parcial, calificacion]);
+        res.status(201).json({ message: 'Calificación creada', insertId: result.insertId });
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar el alumno', error });
+        res.status(500).json({ message: 'Error al crear la calificación', error });
     }
 };
 
 
 module.exports = {
-    getAllStudents,
-    getStudentById,
-    createStudent,
-    updateStudentGrade,
-    deleteStudent
+    getAllCalif,
+    getCalifByParcial,
+    updateCalifByAlumno,
+    getCalifByAlumno,
+    createCalif
 };
